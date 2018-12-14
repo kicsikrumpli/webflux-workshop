@@ -1,5 +1,6 @@
 package io.spring.workshop.demostockquotes.resource;
 
+import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,9 @@ public class QuoteRouter {
 
     @Bean
     public RouterFunction<ServerResponse> helloRouterFunction() {
-        return RouterFunctions.route()
-                .GET("/hello-world", accept(MediaType.TEXT_PLAIN), handler::hello)
+        return RouterFunctions
+                .route()
+                .GET("/hello-world", accept(TEXT_PLAIN), handler::hello)
                 .build();
     }
 

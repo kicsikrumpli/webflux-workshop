@@ -22,6 +22,7 @@ public class QuoteHandler {
     public QuoteHandler(QuoteGenerator quoteGenerator) {
         lotsOfQuotes = quoteGenerator
                 .fetchQuoteStream(Duration.ofMillis(200L))
+                .publish().autoConnect()
                 .share();
     }
 

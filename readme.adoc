@@ -4,21 +4,21 @@ Following https://bclozel.github.io/webflux-workshop/[Spring WebFlux Workshop]
 
 == Progress
 === 2018.02.14.
-- https://bclozel.github.io/webflux-workshop/#_create_your_first_handlerfunction_routerfunction[Hello World Router and Handler functions]
+* https://bclozel.github.io/webflux-workshop/#_create_your_first_handlerfunction_routerfunction[Hello World Router and Handler functions]
 +
 Router Function
 +
 ----
 @Configuration
 public class QuoteRouter {
-    @Autowired
-    private QuoteHandler handler;
 
     @Bean
-    public RouterFunction<ServerResponse> helloRouterFunction() {
+    public RouterFunction<ServerResponse> helloRouter(QuoteHandler handler) {
         return RouterFunctions
                 .route()
-                .GET("/hello-world", accept(TEXT_PLAIN), handler::hello)
+                .GET("/hello-world",
+                        accept(TEXT_PLAIN),
+                        handler::hello)
                 .build();
     }
 }
@@ -38,3 +38,77 @@ public class QuoteHandler {
     }
 }
 ----
+
+=== 2018.12.19
+* https://bclozel.github.io/webflux-workshop/#_create_your_first_handlerfunction_routerfunction[Echo Router and Handler functions]
++
+Router Function
++
+----
+@Bean
+public RouterFunction<ServerResponse> echoRouter(QuoteHandler handler) {
+    return RouterFunctions
+            .route()
+            .POST("/echo",
+                    accept(TEXT_PLAIN),
+                    handler::echo)
+            .build();
+}
+----
++
+Handler Function
++
+----
+public Mono<ServerResponse> echo(ServerRequest request) {
+    return ServerResponse
+            .ok()
+            .body(request.bodyToMono(String.class), String.class);
+}
+----
+
+* https://bclozel.github.io/webflux-workshop/#_expose_the_flux_quotes_as_a_web_service[Streaming Quotes Endpoint]
++
+Router Function
++
+----
+@Bean
+public RouterFunction<ServerResponse> quoteRouter(QuoteHandler handler) {
+    return RouterFunctions
+            .route()
+            .GET("/quotes", accept(APPLICATION_STREAM_JSON), handler::streamQuotes)
+            .build();
+}
+----
++
+Handler Function
++
+----
+@Component
+public class QuoteHandler {
+    private Flux<Quote> quotes;
+
+    public QuoteHandler(QuoteGenerator quoteGenerator) {
+        quotes = quoteGenerator
+                .fetchQuoteStream(Duration.ofMillis(200L))
+                .share();
+    }
+
+    public Mono<ServerResponse> streamQuotes(ServerRequest request) {
+        return ServerResponse
+                .ok()
+                .contentType(APPLICATION_STREAM_JSON)
+                .body(quotes, Quote.class);
+    }
+----
+
+** `.share()` creates a multicast hot flux, that is cancelled when no subscribers are left
+** see also `publish()...`
+*** `.connect()`
+**** connects regardless of subscribers
+*** `.autoConnect()`
+**** autoconnects on first subscriber
+*** `.refCount()`
+**** shorthand for `.share()`
+**** connects on first subscriber
+**** cancels when no subscribers left
+

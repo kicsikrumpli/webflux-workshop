@@ -1,5 +1,6 @@
 package io.spring.workshop.demostockquotes.resource;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
@@ -27,6 +28,14 @@ public class QuoteRouter {
         return RouterFunctions
                 .route()
                 .GET("/quotes", accept(APPLICATION_STREAM_JSON), handler::streamQuotes)
+                .build();
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> quoteLimitedVomitter(QuoteHandler handler) {
+        return RouterFunctions
+                .route()
+                .GET("/quotes", accept(APPLICATION_JSON), handler::streamNQuotes)
                 .build();
     }
 

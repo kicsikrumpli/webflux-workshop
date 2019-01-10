@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -48,9 +47,11 @@ public class QuoteGenerator {
         final Instant instant = Instant.now();
         return prices.stream()
                 .map(baseQuote -> {
-                    BigDecimal priceChange = baseQuote.getPrice()
+                    BigDecimal priceChange = baseQuote
+                            .getPrice()
                             .multiply(new BigDecimal(0.05 * this.random.nextDouble()), this.mathContext);
-                    Quote result = new Quote(baseQuote.getTicker(), baseQuote.getPrice().add(priceChange));
+                    Quote result = new Quote(baseQuote.getTicker(), BigDecimal.valueOf(interval));
+                    //Quote result = new Quote(baseQuote.getTicker(), baseQuote.getPrice().add(priceChange));
                     result.setInstant(instant);
                     return result;
                 })

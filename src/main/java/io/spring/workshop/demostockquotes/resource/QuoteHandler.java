@@ -1,5 +1,6 @@
 package io.spring.workshop.demostockquotes.resource;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
@@ -21,9 +22,9 @@ public class QuoteHandler {
 
     public QuoteHandler(QuoteGenerator quoteGenerator) {
         lotsOfQuotes = quoteGenerator
-                .fetchQuoteStream(Duration.ofMillis(200L))
-                .publish().autoConnect()
+                .fetchQuoteStream(Duration.ofMillis(5000L))
                 .share();
+                //.publish().autoConnect();
     }
 
     public Mono<ServerResponse> hello(ServerRequest request) {
@@ -47,4 +48,10 @@ public class QuoteHandler {
                 .body(lotsOfQuotes, Quote.class);
     }
 
+    public Mono<ServerResponse> streamNQuotes(ServerRequest request) {
+        return ServerResponse
+                .ok()
+                .contentType(APPLICATION_JSON)
+                .body(lotsOfQuotes.take(request.queryParam("size").map(Long::valueOf).orElse(10L)), Quote.class);
+    }
 }

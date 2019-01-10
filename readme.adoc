@@ -112,3 +112,34 @@ public class QuoteHandler {
 **** connects on first subscriber
 **** cancels when no subscribers left
 
+=== 2019.01.10.
+* https://bclozel.github.io/webflux-workshop/#_expose_the_flux_quotes_as_a_web_service[Take Last N Quotes]
++
+Router Function
++
+NOTE: Observe content type different from streaming endpoint
++
+----
+@Bean
+public RouterFunction<ServerResponse> quoteLimitedVomitter(QuoteHandler handler) {
+    return RouterFunctions
+            .route()
+            .GET("/quotes", accept(APPLICATION_JSON), handler::streamNQuotes)
+            .build();
+}
+----
++
+Handler Function
++
+----
+public Mono<ServerResponse> streamNQuotes(ServerRequest request) {
+    Long size = request
+            .queryParam("size")
+            .map(Long::valueOf)
+            .orElse(10L);
+    return ServerResponse
+            .ok()
+            .contentType(APPLICATION_JSON)
+            .body(lotsOfQuotes.take(size), Quote.class);
+}
+----

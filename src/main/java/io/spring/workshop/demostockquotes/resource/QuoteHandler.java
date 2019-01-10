@@ -22,7 +22,7 @@ public class QuoteHandler {
 
     public QuoteHandler(QuoteGenerator quoteGenerator) {
         lotsOfQuotes = quoteGenerator
-                .fetchQuoteStream(Duration.ofMillis(5000L))
+                .fetchQuoteStream(Duration.ofMillis(1000L))
                 .share();
                 //.publish().autoConnect();
     }
@@ -49,9 +49,13 @@ public class QuoteHandler {
     }
 
     public Mono<ServerResponse> streamNQuotes(ServerRequest request) {
+        long size = request
+                .queryParam("size")
+                .map(Long::valueOf)
+                .orElse(10L);
         return ServerResponse
                 .ok()
                 .contentType(APPLICATION_JSON)
-                .body(lotsOfQuotes.take(request.queryParam("size").map(Long::valueOf).orElse(10L)), Quote.class);
+                .body(lotsOfQuotes.take(size), Quote.class);
     }
 }

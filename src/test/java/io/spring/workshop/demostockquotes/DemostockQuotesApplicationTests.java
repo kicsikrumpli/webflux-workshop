@@ -5,9 +5,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,12 +15,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import io.spring.workshop.demostockquotes.domain.Quote;
-import lombok.extern.slf4j.Slf4j;
 import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-@Slf4j
 public class DemostockQuotesApplicationTests {
 
     @Autowired
@@ -45,7 +41,9 @@ public class DemostockQuotesApplicationTests {
                 .hasSize(20)
                 .consumeWith(allQuotes ->
                         assertThat(allQuotes.getResponseBody())
-                                .allSatisfy(quote -> assertThat(quote.getPrice()).isPositive()));
+                                .allSatisfy(quote ->
+                                        assertThat(quote.getPrice())
+                                                .isPositive()));
     }
 
     @Test
@@ -60,13 +58,12 @@ public class DemostockQuotesApplicationTests {
                 .collectList()
                 .block();
 
-        assertThat(result)
-                .allSatisfy(quote -> assertThat(quote.getPrice()).isPositive());
+        assertThat(result).allSatisfy(
+                quote -> assertThat(quote.getPrice()).isPositive());
     }
 
     @Test
     public void testFetchQuotesAsStreamWithStepVerifier() {
-        AtomicInteger i = new AtomicInteger(0);
         StepVerifier
                 .create(webTestClient.get().uri("/quotes")
                         .accept(APPLICATION_STREAM_JSON)

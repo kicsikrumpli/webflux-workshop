@@ -143,3 +143,66 @@ public Mono<ServerResponse> streamNQuotes(ServerRequest request) {
             .body(lotsOfQuotes.take(size), Quote.class);
 }
 ----
+
+=== 2019.01.24.
+* https://bclozel.github.io/webflux-workshop/#_integration_tests_with_webtestclient[Integration Tests with WebTestClient]
++
+Test Class
++
+----
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = RANDOM_PORT)
+public class DemostockQuotesApplicationTests {
+    @Autowired
+    private WebTestClient webTestClient;
+    ...
+}
+----
++
+NOTE: `RANDOM_PORT` starts server locally on a random port
+ +
+ `@Autowired` injects a fully configured `WebTestClient`
++
+Fixed Size Response Test
++
+----
+@Test
+public void testFetchQuotes() {
+    webTestClient
+            .get().uri("/quotes?size=20")
+            .accept(APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentType(APPLICATION_JSON)
+            .expectBodyList(Quote.class).hasSize(20)
+            .consumeWith(allQuotes ->
+                    assertThat(allQuotes.getResponseBody())
+                            .allSatisfy(quote ->
+                                    assertThat(quote.getPrice())
+                                            .isPositive()));
+}
+----
++
+Streaming Endpoint Test
++
+----
+@Test
+public void testFetchQuotesAsStreamWithStepVerifier() {
+    StepVerifier
+            .create(webTestClient.get().uri("/quotes")
+                    .accept(APPLICATION_STREAM_JSON)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectHeader().contentType(APPLICATION_STREAM_JSON)
+                    .returnResult(Quote.class)
+                    .getResponseBody())
+            .thenRequest(30)
+            .thenConsumeWhile(quote -> quote.getPrice().signum() > 0)
+            .expectNextCount(30)
+            .thenCancel();
+}
+
+----
+NOTE: Used `StepVerifier` to inspect infinite stream's first couple of elements,
+  +
+  instead of original test, which collects to a list and blocks.

@@ -50,8 +50,8 @@ public class QuoteGenerator {
                     BigDecimal priceChange = baseQuote
                             .getPrice()
                             .multiply(new BigDecimal(0.05 * this.random.nextDouble()), this.mathContext);
-                    Quote result = new Quote(baseQuote.getTicker(), BigDecimal.valueOf(interval));
-                    //Quote result = new Quote(baseQuote.getTicker(), baseQuote.getPrice().add(priceChange));
+                    //Quote result = new Quote(baseQuote.getTicker(), BigDecimal.valueOf(interval));
+                    Quote result = new Quote(baseQuote.getTicker(), baseQuote.getPrice().add(priceChange));
                     result.setInstant(instant);
                     return result;
                 })

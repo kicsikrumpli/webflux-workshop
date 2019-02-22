@@ -206,3 +206,65 @@ public void testFetchQuotesAsStreamWithStepVerifier() {
 NOTE: Used `StepVerifier` to inspect infinite stream's first couple of elements,
   +
   instead of original test, which collects to a list and blocks.
+
+=== 2019.02.22.
+* https://bclozel.github.io/webflux-workshop/#_trading_service_application[Trading Service Application]
++
+NOTE: New Spring Boot App with Reactive Web, Devtools, Thymeleaf, and Reactive Mongo
++
+TradingUser Entity
++
+----
+@Document
+public class TradingUser {
+    @Id
+    private String id;
+    private String userName;
+    private String fullName;
+
+    //...
+}
+----
++
+Reactive Mongo Repository
++
+----
+public interface TradingUserRepository extends ReactiveMongoRepository<TradingUser, String> {
+    Mono<TradingUser> findUserByUserName(String userName);
+}
+----
++
+CommandLineRunner to Fill Mongo Repo
++
+----
+@Component
+public class UsersCommandLineRunner implements CommandLineRunner {
+    private final TradingUserRepository repo;
+
+    public UsersCommandLineRunner(TradingUserRepository repo) {
+        this.repo = repo;
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        List<TradingUser> users = List.of(
+            //...
+        );
+        repo.insert(users).blockLast(Duration.ofSeconds(3));
+    }
+}
+----
++
+Restcontroller for Users
++
+----
+@GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+public Flux<TradingUser> getAllUsers() {
+    return repo.findAll();
+}
+
+@GetMapping(value = "/users/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
+public Mono<TradingUser> getUserByName(@PathVariable("username") String userName) {
+    return repo.findUserByUserName(userName);
+}
+----

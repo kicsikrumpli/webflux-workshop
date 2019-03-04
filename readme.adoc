@@ -268,3 +268,65 @@ public Mono<TradingUser> getUserByName(@PathVariable("username") String userName
     return repo.findUserByUserName(userName);
 }
 ----
+=== 2019.03.01.
+* https://bclozel.github.io/webflux-workshop/#_create_a_json_web_service[Create JSON Web Service]
++
+Controller Unit Tests
++
+----
+@RunWith(SpringRunner.class)
+@WebFluxTest
+public class UserControllerTest {
+
+    @MockBean
+    private TradingUserRepository mockRepository;
+
+    @Autowired
+    private WebTestClient webClient;
+
+//...
+}
+----
++
+Get All Users
++
+----
+@Test
+public void testGetAllUsers() {
+    var users = List.of(
+            new TradingUser("wabbit_one", "Sebastien Wabbit"),
+            new TradingUser("not_a_wabbit", "Not a Wabbit")
+    );
+
+    given(mockRepository.findAll())
+            .willReturn(Flux.fromIterable(users));
+
+    webClient.get()
+            .uri("/users")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBodyList(TradingUser.class)
+            .isEqualTo(users);
+}
+----
++
+Find User
++
+----
+@Test
+public void getUserByName() {
+    var user = new TradingUser("wabbit_one", "Sebastien Wabbit");
+
+    given(mockRepository.findUserByUserName("wabbit_one"))
+            .willReturn(Mono.just(user));
+
+    webClient.get()
+            .uri("/users/wabbit_one")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(TradingUser.class)
+            .isEqualTo(user);
+}
+----
